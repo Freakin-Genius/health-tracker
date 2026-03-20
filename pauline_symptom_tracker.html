@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="My Health Log">
+<title>My Health Log</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #085041;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --bg: #F5F4F0;
+    --card: #FFFFFF;
+    --text: #1a1a1a;
+    --text2: #666;
+    --border: rgba(0,0,0,0.1);
+    --radius: 16px;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .top-bar {
+    background: var(--green);
+    padding: 52px 20px 20px;
+    color: white;
+  }
+
+  .top-bar h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .top-bar .date {
+    font-size: 14px;
+    opacity: 0.85;
+    margin-top: 3px;
+  }
+
+  .content { padding: 16px; }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+    margin-bottom: 12px;
+  }
+
+  .symptom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .sym-btn {
+    padding: 12px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    -webkit-appearance: none;
+  }
+
+  .sym-btn.on {
+    background: var(--green-light);
+    border-color: var(--green);
+    color: var(--green-dark);
+  }
+
+  .sev-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0;
+  }
+
+  .sev-label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--green) 0%, var(--green) var(--pct, 40%), #ddd var(--pct, 40%), #ddd 100%);
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: white;
+    border: 2.5px solid var(--green);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    cursor: pointer;
+  }
+
+  .sev-num {
+    font-size: 22px;
+    font-weight: 700;
+    min-width: 36px;
+    text-align: center;
+    color: var(--text);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    resize: vertical;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  textarea:focus { border-color: var(--green); }
+
+  .log-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 10px rgba(29,158,117,0.35);
+    transition: transform 0.1s;
+  }
+
+  .log-btn:active { transform: scale(0.97); }
+
+  .entries-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .entry-count {
+    font-size: 12px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-weight: 700;
+  }
+
+  .entry-card {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid var(--green);
+  }
+
+  .entry-card.sev-mid { border-left-color: var(--amber); }
+  .entry-card.sev-high { border-left-color: var(--red); }
+
+  .entry-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .entry-time { font-size: 13px; font-weight: 700; color: var(--text2); }
+
+  .entry-sev {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 99px;
+  }
+
+  .badge-low { background: var(--green-light); color: var(--green-dark); }
+  .badge-mid { background: var(--amber-light); color: var(--amber); }
+  .badge-high { background: var(--red-light); color: var(--red); }
+
+  .entry-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+
+  .tag {
+    font-size: 12px;
+    padding: 2px 9px;
+    border-radius: 99px;
+    background: white;
+    color: var(--text2);
+    font-weight: 600;
+    border: 1px solid var(--border);
+  }
+
+  .entry-note { font-size: 14px; color: var(--text); line-height: 1.5; }
+
+  .del-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #bbb;
+    cursor: pointer;
+    padding: 0 0 0 8px;
+    line-height: 1;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 28px 0;
+    color: var(--text2);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .copy-btn {
+    width: 100%;
+    padding: 13px;
+    background: white;
+    color: var(--green-dark);
+    border: 1.5px solid var(--green);
+    border-radius: var(--radius);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  .copy-btn:active { background: var(--green-light); }
+
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a1a;
+    color: white;
+    padding: 11px 22px;
+    border-radius: 99px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .install-hint {
+    background: #FFF8E8;
+    border: 1px solid #F0C060;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #7A5500;
+    line-height: 1.6;
+    margin-bottom: 14px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>My Health Log</h1>
+  <div class="date" id="top-date"></div>
+</div>
+
+<div class="content">
+
+  <div class="install-hint" id="install-hint">
+    <strong>Tip:</strong> To save this to your home screen, tap the Share button (box with arrow) in Safari, then tap <strong>Add to Home Screen</strong>.
+  </div>
+
+  <!-- Log entry card -->
+  <div class="card">
+    <div class="section-label">What are you feeling?</div>
+    <div class="symptom-grid">
+      <button class="sym-btn" onclick="toggleSym(this,'Headache')">Headache</button>
+      <button class="sym-btn" onclick="toggleSym(this,'Dizziness')">Dizziness</button>
+      <button class="sym-btn" onclick="toggleSym(this,'Nausea')">Nausea</button>
+      <button class="sym-btn" onclick="toggleSym(this,'Balance issues')">Balance issues</button>
+      <button class="sym-btn" onclick="toggleSym(this,'Fatigue')">Fatigue</button>
+      <button class="sym-btn" onclick="toggleSym(this,'Other')">Other</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">How bad is it? (1 = mild, 10 = severe)</div>
+    <div class="sev-row">
+      <span class="sev-label">Mild</span>
+      <input type="range" min="1" max="10" value="5" step="1" id="sev-slider" oninput="updateSev(this.value)">
+      <span class="sev-label">Severe</span>
+      <span class="sev-num" id="sev-num">5</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Details — describe what happened (or explain "Other")</div>
+    <textarea id="note-input" placeholder="e.g. Took a long nap this afternoon, felt exhausted after lunch... or got dizzy standing up..."></textarea>
+  </div>
+
+  <button class="log-btn" onclick="logEntry()">+ Save this entry</button>
+
+  <!-- Today's log -->
+  <div class="card">
+    <div class="entries-header">
+      <div class="section-label" style="margin:0">Today's entries</div>
+      <span class="entry-count" id="entry-count">0 entries</span>
+    </div>
+    <div id="entries-list">
+      <div class="empty">No entries yet today.<br>Tap symptoms above to get started.</div>
+    </div>
+  </div>
+
+  <button class="copy-btn" onclick="copyForDoctor()">📋 Copy summary for doctor visit</button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var selected = [];
+var STORE_KEY = 'pauline_health_log';
+
+function pad(n){ return n < 10 ? '0'+n : n; }
+
+function todayKey(){
+  var d = new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+
+function nowTime(){
+  var d = new Date();
+  var h = d.getHours(), m = d.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return pad(h)+':'+pad(m)+' '+ampm;
+}
+
+function friendlyDate(d){
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+}
+
+document.getElementById('top-date').textContent = friendlyDate(new Date());
+
+// Show install hint in Safari
+if(window.navigator.userAgent.indexOf('Safari') > -1 && window.navigator.userAgent.indexOf('Chrome') === -1 && !window.navigator.standalone){
+  document.getElementById('install-hint').style.display = 'block';
+}
+
+function updateSev(val){
+  document.getElementById('sev-num').textContent = val;
+  var pct = ((val-1)/9*100).toFixed(1)+'%';
+  document.getElementById('sev-slider').style.setProperty('--pct', pct);
+}
+
+function toggleSym(btn, name){
+  if(btn.classList.contains('on')){
+    btn.classList.remove('on');
+    selected = selected.filter(function(s){ return s !== name; });
+  } else {
+    btn.classList.add('on');
+    selected.push(name);
+  }
+}
+
+function loadEntries(){
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e){ return {}; }
+}
+
+function saveEntries(data){
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+
+function logEntry(){
+  var sev = parseInt(document.getElementById('sev-slider').value);
+  var note = document.getElementById('note-input').value.trim();
+  if(selected.length === 0 && !note){
+    showToast('Please pick a symptom or add a note');
+    return;
+  }
+  var data = loadEntries();
+  var key = todayKey();
+  if(!data[key]) data[key] = [];
+  data[key].unshift({ id: Date.now(), time: nowTime(), symptoms: selected.slice(), severity: sev, note: note });
+  saveEntries(data);
+  selected = [];
+  document.querySelectorAll('.sym-btn').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('note-input').value = '';
+  document.getElementById('sev-slider').value = 5;
+  updateSev(5);
+  renderEntries();
+  showToast('Entry saved ✓');
+}
+
+function deleteEntry(id){
+  var data = loadEntries();
+  var key = todayKey();
+  if(data[key]) data[key] = data[key].filter(function(e){ return e.id !== id; });
+  saveEntries(data);
+  renderEntries();
+}
+
+function sevClass(n){
+  if(n <= 3) return 'sev-low';
+  if(n <= 6) return 'sev-mid';
+  return 'sev-high';
+}
+
+function badgeClass(n){
+  if(n <= 3) return 'badge-low';
+  if(n <= 6) return 'badge-mid';
+  return 'badge-high';
+}
+
+function renderEntries(){
+  var data = loadEntries();
+  var key = todayKey();
+  var entries = data[key] || [];
+  var list = document.getElementById('entries-list');
+  var countEl = document.getElementById('entry-count');
+  countEl.textContent = entries.length + (entries.length === 1 ? ' entry' : ' entries');
+  if(entries.length === 0){
+    list.innerHTML = '<div class="empty">No entries yet today.<br>Tap symptoms above to get started.</div>';
+    return;
+  }
+  list.innerHTML = entries.map(function(e){
+    var sc = sevClass(e.severity);
+    var bc = badgeClass(e.severity);
+    var tags = e.symptoms.map(function(s){ return '<span class="tag">'+s+'</span>'; }).join('');
+    return '<div class="entry-card '+sc+'">'+
+      '<div class="entry-top">'+
+        '<span class="entry-time">'+e.time+'</span>'+
+        '<span class="entry-sev '+bc+'">'+e.severity+'/10</span>'+
+        '<button class="del-btn" onclick="deleteEntry('+e.id+')">✕</button>'+
+      '</div>'+
+      (tags ? '<div class="entry-tags">'+tags+'</div>' : '')+
+      (e.note ? '<div class="entry-note">'+e.note+'</div>' : '')+
+    '</div>';
+  }).join('');
+}
+
+function copyForDoctor(){
+  var data = loadEntries();
+  var key = todayKey();
+  var entries = data[key] || [];
+  if(entries.length === 0){ showToast('No entries to copy yet'); return; }
+  var text = 'Health log — '+friendlyDate(new Date())+'\n';
+  text += '─────────────────────────\n\n';
+  entries.slice().reverse().forEach(function(e){
+    text += e.time+' | Severity: '+e.severity+'/10\n';
+    if(e.symptoms.length) text += 'Symptoms: '+e.symptoms.join(', ')+'\n';
+    if(e.note) text += 'Notes: '+e.note+'\n';
+    text += '\n';
+  });
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('Copied! Paste into a text or email');
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Copied! Paste into a text or email');
+  }
+}
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+renderEntries();
+updateSev(5);
+</script>
+</body>
+</html>
